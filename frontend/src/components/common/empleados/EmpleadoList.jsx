@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getEmpleados, deleteEmpleado } from '../../../api/empleados';
 import Loading from '../Loading';
-import ErrorMessage from '../ErrorMenssage';
+import ErrorMessage from '../ErrorMessage';
 
 const EmpleadosList = () => {
   const [empleados, setEmpleados] = useState([]);

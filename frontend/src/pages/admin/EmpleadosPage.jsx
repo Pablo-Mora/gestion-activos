@@ -1,5 +1,5 @@
 import React from 'react';
-import EmpleadosList from '../../components/common/empleados/EmpleadosList';
+import EmpleadosList from '../../components/common/empleados/EmpleadoList';
 import EmpleadoForm from '../../components/common/empleados/EmpleadoForm';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';

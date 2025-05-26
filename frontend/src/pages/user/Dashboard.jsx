@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
-import { geteActivoById } from '../../api/activos';
+import { getActivoById } from '../../api/activos';
 import { getActasUsuario } from '../../api/actas';
 import { useAuth } from '../../context/AuthContext';
 import Loading from '../../components/common/Loading';
@@ -26,6 +26,9 @@ const Dashboard = () => {
         
         // Obtener actas del usuario
         const actasData = await getActasUsuario();
+
+        // Obtener activos por ID
+        const activos = await getActivoById();
         
         // Contar por tipo de activo
         const hardware = activosData.filter(activo => activo.tipo === 'HARDWARE').length;

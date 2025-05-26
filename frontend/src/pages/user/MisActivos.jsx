@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { getActivosById } from '../../api/activos';
+//import { getActivosById } from '../../api/activos';
 import { getActasUsuario } from '../../api/actas';
 import { useAuth } from '../../context/AuthContext';
 import Loading from '../../components/common/Loading';

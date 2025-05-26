@@ -6,8 +6,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 // CSS imports
-import './styles/global.css';
-import './styles/tailwind.css';
+//import './styles/global.css';
+//import './styles/tailwind.css';
 
 // Layout Components
 import Header from './components/common/Header';
