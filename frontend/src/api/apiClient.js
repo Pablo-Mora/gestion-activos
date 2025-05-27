@@ -1,7 +1,16 @@
 import axios from 'axios';
 
 // Obtener la URL base de la API desde variables de entorno
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+// Verificar si process está disponible (para evitar errores en el navegador)
+const getApiUrl = () => {
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+  }
+  // Fallback si process no está disponible
+  return 'http://localhost:8080/api';
+};
+
+const API_URL = getApiUrl();
 
 // Crear instancia de axios con configuración base
 const apiClient = axios.create({
@@ -32,23 +41,23 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-
+    
     // Si el error es 401 (No autorizado) y no es una solicitud de reintento
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Si la solicitud no es para login o refresh token
       if (!originalRequest.url.includes('auth/login') && !originalRequest.url.includes('auth/refresh')) {
         originalRequest._retry = true;
-        
+       
         try {
           // Intentar renovar el token
           const refreshToken = localStorage.getItem('refreshToken');
           if (refreshToken) {
             const response = await apiClient.post('/auth/refresh', { refreshToken });
             const { token } = response.data;
-            
+           
             // Guardar el nuevo token
             localStorage.setItem('token', token);
-            
+           
             // Actualizar el token en la solicitud original y reintentarla
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return apiClient(originalRequest);
@@ -57,27 +66,27 @@ apiClient.interceptors.response.use(
           // Si falla la renovación, cerrar sesión
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
-          
+         
           // Redireccionar a login
           window.location.href = '/login';
           return Promise.reject(refreshError);
         }
       }
     }
-
+    
     // Manejar otros errores de respuesta
-    const errorMessage = 
-      error.response?.data?.message || 
-      error.response?.data?.error || 
-      error.message || 
+    const errorMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
       'Ha ocurrido un error inesperado';
-
+      
     // Crear un objeto de error con detalles adicionales
     const enhancedError = new Error(errorMessage);
     enhancedError.statusCode = error.response?.status;
     enhancedError.data = error.response?.data;
     enhancedError.isAxiosError = true;
-
+    
     return Promise.reject(enhancedError);
   }
 );
