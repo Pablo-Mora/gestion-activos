@@ -84,4 +84,8 @@ public class ActivoHardware {
     protected void onUpdate() {
         fechaActualizacion = LocalDateTime.now();
     }
+
+    public void setId(Long id) {
+
+    }
 }

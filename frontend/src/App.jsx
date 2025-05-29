@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 // Context Providers
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 // CSS imports
+import './index.css';
 //import './styles/global.css';
 //import './styles/tailwind.css';
 
@@ -102,116 +103,122 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
-const App = () => {
-  const [appReady, setAppReady] = useState(false);
-  
-  // Simula carga inicial de la aplicación
+// Componente de pantalla de carga con redirección automática
+const LoadingScreen = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAppReady(true);
-    }, 800);
+      window.location.href = '/login';
+    }, 3000); // Cambiado a 3 segundos para una mejor experiencia
     
     return () => clearTimeout(timer);
   }, []);
   
-  if (!appReady) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando sistema...</p>
-        </div>
+  return (
+    <div className="flex items-center justify-center h-screen bg-white">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Cargando sistema...</p>
+        <p className="mt-2 text-sm text-gray-500">Redirigiendo al login...</p>
       </div>
-    );
-  }
-  
+    </div>
+  );
+};
+
+// Componente principal de la aplicación
+const AppContent = () => {
+  return (
+    <Routes>
+      {/* Ruta pública */}
+      <Route path="/login" element={<Login />} />
+      
+      {/* Rutas de administrador */}
+      <Route path="/admin" element={
+        <PrivateRoute allowedRoles={['admin']}>
+          <Layout>
+            <AdminDashboard />
+          </Layout>
+        </PrivateRoute>
+      } />
+      
+      <Route path="/admin/dashboard" element={
+        <PrivateRoute allowedRoles={['admin']}>
+          <Layout>
+            <AdminDashboard />
+          </Layout>
+        </PrivateRoute>
+      } />
+      
+      <Route path="/admin/users" element={
+        <PrivateRoute allowedRoles={['admin']}>
+          <Layout>
+            <UserManagement />
+          </Layout>
+        </PrivateRoute>
+      } />
+      
+      <Route path="/admin/empleados" element={
+        <PrivateRoute allowedRoles={['admin']}>
+          <Layout>
+            <EmpleadosPage />
+          </Layout>
+        </PrivateRoute>
+      } />
+      
+      <Route path="/admin/activos" element={
+        <PrivateRoute allowedRoles={['admin']}>
+          <Layout>
+            <ActivosPage />
+          </Layout>
+        </PrivateRoute>
+      } />
+      
+      {/* Rutas de usuario */}
+      <Route path="/user/dashboard" element={
+        <PrivateRoute allowedRoles={['user', 'admin']}>
+          <Layout>
+            <UserDashboard />
+          </Layout>
+        </PrivateRoute>
+      } />
+      
+      <Route path="/user/activos" element={
+        <PrivateRoute allowedRoles={['user', 'admin']}>
+          <Layout>
+            <MisActivos />
+          </Layout>
+        </PrivateRoute>
+      } />
+      
+      {/* Ruta raíz - muestra la pantalla de carga */}
+      <Route path="/" element={<LoadingScreen />} />
+      
+      {/* Captura de rutas no encontradas */}
+      <Route path="*" element={
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+          <h1 className="text-4xl font-bold text-gray-800">404</h1>
+          <p className="text-xl text-gray-600 mt-2">Página no encontrada</p>
+          <button 
+            onClick={() => window.history.back()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Volver
+          </button>
+        </div>
+      } />
+    </Routes>
+  );
+};
+
+const App = () => {
   return (
     <AuthProvider>
       <ThemeProvider>
         <Router>
-          <Routes>
-            {/* Ruta pública */}
-            <Route path="/login" element={<Login />} />
-            
-            {/* Rutas de administrador */}
-            <Route path="/admin" element={
-              <PrivateRoute allowedRoles={['admin']}>
-                <Layout>
-                  <AdminDashboard />
-                </Layout>
-              </PrivateRoute>
-            } />
-            
-            <Route path="/admin/dashboard" element={
-              <PrivateRoute allowedRoles={['admin']}>
-                <Layout>
-                  <AdminDashboard />
-                </Layout>
-              </PrivateRoute>
-            } />
-            
-            <Route path="/admin/users" element={
-              <PrivateRoute allowedRoles={['admin']}>
-                <Layout>
-                  <UserManagement />
-                </Layout>
-              </PrivateRoute>
-            } />
-            
-            <Route path="/admin/empleados" element={
-              <PrivateRoute allowedRoles={['admin']}>
-                <Layout>
-                  <EmpleadosPage />
-                </Layout>
-              </PrivateRoute>
-            } />
-            
-            <Route path="/admin/activos" element={
-              <PrivateRoute allowedRoles={['admin']}>
-                <Layout>
-                  <ActivosPage />
-                </Layout>
-              </PrivateRoute>
-            } />
-            
-            {/* Rutas de usuario */}
-            <Route path="/user/dashboard" element={
-              <PrivateRoute allowedRoles={['user', 'admin']}>
-                <Layout>
-                  <UserDashboard />
-                </Layout>
-              </PrivateRoute>
-            } />
-            
-            <Route path="/user/activos" element={
-              <PrivateRoute allowedRoles={['user', 'admin']}>
-                <Layout>
-                  <MisActivos />
-                </Layout>
-              </PrivateRoute>
-            } />
-            
-            {/* Redirección de ruta raíz */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            
-            {/* Captura de rutas no encontradas */}
-            <Route path="*" element={
-              <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-                <h1 className="text-4xl font-bold text-gray-800">404</h1>
-                <p className="text-xl text-gray-600 mt-2">Página no encontrada</p>
-                <button 
-                  onClick={() => window.history.back()} 
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Volver
-                </button>
-              </div>
-            } />
-          </Routes>
+          <AppContent />
         </Router>
       </ThemeProvider>
     </AuthProvider>
   );
 };
 
-export default App;
+export default App; 

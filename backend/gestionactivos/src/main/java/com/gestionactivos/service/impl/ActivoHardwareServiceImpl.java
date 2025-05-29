@@ -3,6 +3,8 @@ package com.gestionactivos.service.impl;
 import com.gestionactivos.dto.ActivoHardwareDTO;
 import com.gestionactivos.exception.ResourceNotFoundException;
 import com.gestionactivos.model.ActivoHardware;
+import com.gestionactivos.model.enums.EstadoActivo;
+import com.gestionactivos.model.enums.TipoActivo;
 import com.gestionactivos.repository.ActivoHardwareRepository;
 import com.gestionactivos.service.ActivoHardwareService;
 import org.springframework.beans.BeanUtils;
@@ -53,6 +55,36 @@ public class ActivoHardwareServiceImpl implements ActivoHardwareService {
         ActivoHardwareDTO dto = new ActivoHardwareDTO();
         BeanUtils.copyProperties(activoHardware, dto);
         return dto;
+    }
+
+    @Override
+    public List<ActivoHardwareDTO> listarActivosHardware() {
+        return List.of();
+    }
+
+    @Override
+    public List<ActivoHardwareDTO> buscarActivosPorTipo(TipoActivo tipo) {
+        return List.of();
+    }
+
+    @Override
+    public List<ActivoHardwareDTO> buscarActivosPorEstado(EstadoActivo estado) {
+        return List.of();
+    }
+
+    @Override
+    public List<ActivoHardwareDTO> buscarActivosPorEmpleado(Long empleadoId) {
+        return List.of();
+    }
+
+    @Override
+    public void asignarActivoAEmpleado(Long activoId, Long empleadoId) {
+
+    }
+
+    @Override
+    public void cambiarEstadoActivo(Long activoId, EstadoActivo nuevoEstado) {
+
     }
 
     @Override

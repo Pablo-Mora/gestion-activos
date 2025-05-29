@@ -1,5 +1,6 @@
 package com.gestionactivos.model;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.gestionactivos.model.enums.RolUsuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -56,5 +57,18 @@ public class UsuarioSistema {
     @PreUpdate
     protected void onUpdate() {
         fechaActualizacion = LocalDateTime.now();
+    }
+
+    public String getUsername() {
+        return null;
+    }
+
+    public String getPassword() {
+    }
+
+    public boolean isActivo() {
+    }
+
+    public JsonSubTypes.Type getRol() {
     }
 }

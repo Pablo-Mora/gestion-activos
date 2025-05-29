@@ -1,13 +1,22 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
-// Layouts
-import AdminLayout from './components/layout/AdminLayout';
-import UserLayout from './components/layout/AuthLayout';
-import AuthLayout from './components/layout/UserLayout';
+// Context Providers
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
-// Auth Pages
+// CSS imports
+//import './styles/global.css';
+//import './styles/tailwind.css';
+
+// Layout Components
+import Header from './components/common/Header';
+import Sidebar from './components/common/Sidebar';
+import Footer from './components/common/Footer';
+import Loading from './components/common/Loading';
+import ErrorMessage from './components/common/ErrorMessage';
+
+// Auth Components
 import Login from './components/auth/Login';
 
 // Admin Pages
@@ -15,74 +24,178 @@ import AdminDashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import EmpleadosPage from './pages/admin/EmpleadosPage';
 import ActivosPage from './pages/admin/ActivosPage';
-// Falta creacion de esta page= import ActasAdminPage from './pages/admin/ActasPage';
 
 // User Pages
 import UserDashboard from './pages/user/Dashboard';
 import MisActivos from './pages/user/MisActivos';
-// Falta creacion de esta page= import MisActas from './pages/user/MisActas';
 
-// Common Pages
-// Falta creacion de esta page= import NotFound from './pages/NotFound';
+// Layout componente que envuelve las páginas con la estructura común
+const Layout = ({ children }) => {
+  const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-// PrivateRoute component to protect routes that require authentication
-const PrivateRoute = ({ children, requiredRole }) => {
-  const { isAuthenticated, user } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-  
-  if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to="/unauthorized" />;
-  }
-  
-  return children;
+  // Maneja el responsive para el sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Header toggleSidebar={toggleSidebar} />
+      
+      <div className="flex flex-1">
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          closeSidebar={() => setSidebarOpen(false)} 
+          userRole={user?.role || 'user'} 
+        />
+        
+        <main className={`flex-1 p-4 transition-all duration-300 ${sidebarOpen && !isMobile ? 'ml-64' : ''}`}>
+          <div className="container mx-auto px-4">
+            {children}
+          </div>
+        </main>
+      </div>
+      
+      <Footer />
+    </div>
+  );
 };
 
-const AppRoutes = () => {
+// Importar tu componente PrivateRoute
+import PrivateRoute from './components/auth/PrivateRoute';
+
+// Componente de pantalla de carga con redirección automática
+const LoadingScreen = () => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.location.href = '/login';
+    }, 3000); // Cambiado a 3 segundos para una mejor experiencia
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  return (
+    <div className="flex items-center justify-center h-screen bg-white">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Cargando sistema...</p>
+        <p className="mt-2 text-sm text-gray-500">Redirigiendo al login...</p>
+      </div>
+    </div>
+  );
+};
+
+// Componente principal de la aplicación
+const AppContent = () => {
   return (
     <Routes>
-      {/* Auth Routes */}
-      <Route path="/" element={<AuthLayout />}>
-        <Route index element={<Navigate to="/login" />} />
-        <Route path="login" element={<Login />} />
+      {/* Ruta pública */}
+      <Route path="/login" element={<Login />} />
+      
+      {/* Rutas de administrador */}
+      <Route element={<PrivateRoute allowedRoles={['admin']} />}>
+        <Route path="/admin" element={
+          <Layout>
+            <AdminDashboard />
+          </Layout>
+        } />
+        
+        <Route path="/admin/dashboard" element={
+          <Layout>
+            <AdminDashboard />
+          </Layout>
+        } />
+        
+        <Route path="/admin/users" element={
+          <Layout>
+            <UserManagement />
+          </Layout>
+        } />
+        
+        <Route path="/admin/empleados" element={
+          <Layout>
+            <EmpleadosPage />
+          </Layout>
+        } />
+        
+        <Route path="/admin/activos" element={
+          <Layout>
+            <ActivosPage />
+          </Layout>
+        } />
       </Route>
       
-      {/* Admin Routes */}
-      <Route 
-        path="/admin" 
-        element={
-          <PrivateRoute requiredRole="ADMIN">
-            <AdminLayout />
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route path="usuarios" element={<UserManagement />} />
-        <Route path="empleados" element={<EmpleadosPage />} />
-        <Route path="activos" element={<ActivosPage />} />
-        <Route path="actas" element={<ActasAdminPage />} />
+      {/* Rutas de usuario */}
+      <Route element={<PrivateRoute allowedRoles={['user', 'admin']} />}>
+        <Route path="/user/dashboard" element={
+          <Layout>
+            <UserDashboard />
+          </Layout>
+        } />
+        
+        <Route path="/user/activos" element={
+          <Layout>
+            <MisActivos />
+          </Layout>
+        } />
       </Route>
       
-      {/* User Routes */}
-      <Route 
-        path="/user" 
-        element={
-          <PrivateRoute requiredRole="USER">
-            <UserLayout />
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<UserDashboard />} />
-        <Route path="mis-activos" element={<MisActivos />} />
-        <Route path="mis-actas" element={<MisActas />} />
-      </Route>
+      {/* Ruta raíz - muestra la pantalla de carga */}
+      <Route path="/" element={<LoadingScreen />} />
       
-      {/* Not Found Route */}
-      <Route path="*" element={<NotFound />} />
+      {/* Ruta de acceso denegado */}
+      <Route path="/acceso-denegado" element={
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+          <h1 className="text-4xl font-bold text-red-600">Acceso Denegado</h1>
+          <p className="text-xl text-gray-600 mt-2">No tienes permisos para acceder a esta página</p>
+          <button 
+            onClick={() => window.history.back()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Volver
+          </button>
+        </div>
+      } />
+      
+      {/* Captura de rutas no encontradas */}
+      <Route path="*" element={
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
+          <h1 className="text-4xl font-bold text-gray-800">404</h1>
+          <p className="text-xl text-gray-600 mt-2">Página no encontrada</p>
+          <button 
+            onClick={() => window.history.back()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Volver
+          </button>
+        </div>
+      } />
     </Routes>
   );
 };
 
-export default AppRoutes;
+const App = () => {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
+  );
+};
+
+export default App;
