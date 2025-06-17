@@ -1,0 +1,11 @@
+/* frontend/src/index.css (or a new global.css) */
+body, html, #root {
+  height: 100%;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Ensure content below fixed navbar is not hidden */
+body {
+  /* padding-top: 56px; */ /* This might be handled by MainLayout's padding directly */
+}
