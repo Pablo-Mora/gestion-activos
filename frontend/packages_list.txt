@@ -1,0 +1,17 @@
+Key NPM Dependencies (Frontend):
+
+- react: ^19.1.0 (or as per project's package.json)
+- react-dom: ^19.1.0 (or as per project's package.json)
+- axios: (version from package.json)
+- react-router-dom: (version from package.json)
+- react-bootstrap: (version from package.json)
+- bootstrap: (version from package.json)
+- react-hook-form: (version from package.json)
+- html2pdf.js: (version from package.json)
+
+Development Dependencies:
+- @vitejs/plugin-react: (version from package.json)
+- vite: (version from package.json)
+- eslint: (version from package.json, if configured)
+
+For a complete and exact list of dependencies and their versions, please refer to the `frontend/package.json` file.

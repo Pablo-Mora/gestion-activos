@@ -1,22 +1,27 @@
 // frontend/src/components/Navbar.jsx
 import React from 'react';
 import { LinkContainer } from 'react-router-bootstrap';
-import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap';
+import { Navbar, Nav, NavDropdown, Container, Button } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
-const AppNavbar = () => {
+const AppNavbar = ({ toggleSidebar }) => {
     const { user, logout } = useAuth();
-    const navigate = useNavigate();
 
     const handleLogout = () => {
         logout();
-        // navigate('/login'); // AuthContext already handles navigation on logout
     };
 
     return (
-        <Navbar bg="dark" variant="dark" expand="lg" fixed="top">
-            <Container>
+        <Navbar bg="dark" variant="dark" expand="lg" fixed="top" style={{zIndex: 1030}}>
+            <Container fluid>
+                 <Button
+                    variant="outline-light"
+                    onClick={toggleSidebar}
+                    className="me-2 d-lg-none"
+                    aria-label="Toggle sidebar"
+                >
+                    &#9776; {/* Unicode Menu Icon */}
+                </Button>
                 <LinkContainer to={user ? "/dashboard" : "/login"}>
                     <Navbar.Brand>ActivosTIC</Navbar.Brand>
                 </LinkContainer>
@@ -28,15 +33,10 @@ const AppNavbar = () => {
                                 <Nav.Link>Dashboard</Nav.Link>
                             </LinkContainer>
                         )}
-                        {/* Add more general links here if needed */}
                     </Nav>
                     <Nav>
                         {user ? (
-                            <NavDropdown title={user.username || 'User'} id="basic-nav-dropdown">
-                                {/* <LinkContainer to="/profile">
-                                    <NavDropdown.Item>Profile</NavDropdown.Item>
-                                </LinkContainer>
-                                <NavDropdown.Divider /> */}
+                            <NavDropdown title={user.username || 'User'} id="basic-nav-dropdown" align="end">
                                 <NavDropdown.Item onClick={handleLogout}>
                                     Logout
                                 </NavDropdown.Item>
@@ -52,5 +52,4 @@ const AppNavbar = () => {
         </Navbar>
     );
 };
-
 export default AppNavbar;
