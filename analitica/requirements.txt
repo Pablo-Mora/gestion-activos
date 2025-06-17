@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+JayDeBeApi
+pandas
+matplotlib
+seaborn
+python-docx
+openpyxl
+
+# Note: The H2 JDBC driver (e.g., h2-2.1.214.jar) is also a dependency
+# but managed manually (e.g., placed in a 'lib' folder), not via pip.
