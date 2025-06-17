@@ -1,0 +1,14 @@
+Key Maven Dependencies:
+
+- org.springframework.boot:spring-boot-starter-web
+- org.springframework.boot:spring-boot-starter-data-jpa
+- org.springframework.boot:spring-boot-starter-security
+- org.springframework.boot:spring-boot-starter-validation
+- com.h2database:h2 (runtime)
+- org.projectlombok:lombok (optional)
+- io.jsonwebtoken:jjwt-api
+- io.jsonwebtoken:jjwt-impl (runtime)
+- io.jsonwebtoken:jjwt-jackson (runtime)
+- org.apache.poi:poi-ooxml
+
+For specific versions, please refer to the backend/pom.xml file.
