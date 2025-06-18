@@ -1,61 +1,78 @@
 # analitica/database.py
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import pandas as pd
 import os
+from typing import Optional, Dict, List
 
-# --- H2 Database Connection using JayDeBeApi ---
-# Path to the H2 JDBC driver JAR downloaded earlier
-# Assumes 'analitica' is the current working directory when script/app runs
-H2_JAR_PATH = os.path.join(os.path.dirname(__file__), "lib", "h2-2.1.214.jar")
+# Base path for data files
+DATA_SOURCE_DIR = os.path.join(os.path.dirname(__file__), "data_source")
 
-# Path to the H2 database file.
-# This path is RELATIVE TO WHERE THE PYTHON APP IS RUN.
-# If Spring Boot saves DB to project_root/data/activos_tic_db.mv.db
-# and Python app runs from project_root/analitica/
-# then the path would be '../data/activos_tic_db' (without .mv.db for JDBC URL)
-# For development, ensure the Spring Boot backend uses a FILE-BASED H2 database.
-# Example: spring.datasource.url=jdbc:h2:file:./data/activos_tic_db
-# This means the H2 file will be at project_root/data/activos_tic_db.mv.db
+# Global cache for DataFrames
+_dataframes_cache: Dict[str, Optional[pd.DataFrame]] = {
+    "users": None,
+    "roles": None,
+    "user_roles": None,
+    "employees": None,
+    "hardware": None,
+    "licenses": None,
+    "web_accesses": None,
+}
 
-# Adjust this path based on your project structure and where Spring Boot saves the H2 file.
-# Assuming the H2 file is in a 'data' folder at the project root.
-# If 'analitica' is at the project root, then path is like './data/activos_tic_db'
-# If 'analitica' is a sub-folder of project root, path is '../data/activos_tic_db'
-# Let's assume Spring Boot data dir is at project root 'data/'
-# and this analitica app is also at project root 'analitica/'
-# So, path to DB file from 'analitica' dir is '../data/activos_tic_db'
-
-# The path to the H2 database file (without the .mv.db extension for the JDBC URL)
-# This path needs to be correct relative to where the Spring Boot app saves its H2 file.
-# If Spring Boot saves to `PROJECT_ROOT/data/activos_tic_db`, then:
-DB_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'activos_tic_db'))
-# For testing, let's assume the db file is in the analitica folder for now.
-# DB_FILE_PATH_FOR_TESTING = os.path.join(os.path.dirname(__file__), 'test_activos_tic_db')
-# SQLALCHEMY_DATABASE_URL_JDBC = f"h2+jaydebeapi://SA:{DB_FILE_PATH_FOR_TESTING}" # No password, default user SA
-
-# PRODUCTION-LIKE PATH (assuming Spring Boot saves to PROJECT_ROOT/data/):
-SQLALCHEMY_DATABASE_URL_JDBC = f"h2+jaydebeapi://SA:{DB_FILE_PATH}" # No password for H2 default 'sa' user
-
-# SQLAlchemy engine using JayDeBeApi
-# The connect_args are specific to JayDeBeApi for JDBC drivers.
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL_JDBC,
-    connect_args={'jars': [H2_JAR_PATH]}
-    # For some H2 versions/JayDeBeApi, you might need 'driver': 'org.h2.Driver' here too,
-    # but often JayDeBeApi infers it or it's part of the URL implicitly.
-)
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Dependency to get DB session in FastAPI routes
-def get_db():
-    db = SessionLocal()
+def _load_csv(filename: str, required_columns: Optional[List[str]] = None) -> Optional[pd.DataFrame]:
+    """Loads a CSV file into a pandas DataFrame."""
+    path = os.path.join(DATA_SOURCE_DIR, filename)
+    if not os.path.exists(path):
+        print(f"Warning: Data file {filename} not found at {path}")
+        return None
     try:
-        yield db
-    finally:
-        db.close()
+        df = pd.read_csv(path)
+        if required_columns:
+            missing_cols = [col for col in required_columns if col not in df.columns]
+            if missing_cols:
+                print(f"Warning: Data file {filename} is missing columns: {missing_cols}")
+                # Decide if this should return None or df, for now return df
+        return df
+    except Exception as e:
+        print(f"Error loading {filename}: {e}")
+        return None
 
-# Function to create tables (optional, if Python app needs to init schema)
-# from db_models import Base # Import Base from your models file
-# def init_db():
-#     Base.metadata.create_all(bind=engine) # This would create tables if they don't exist
+def get_users_df() -> Optional[pd.DataFrame]:
+    if _dataframes_cache["users"] is None:
+        _dataframes_cache["users"] = _load_csv("users.csv", ["id", "username", "email"])
+    return _dataframes_cache["users"]
+
+def get_roles_df() -> Optional[pd.DataFrame]:
+    if _dataframes_cache["roles"] is None:
+        _dataframes_cache["roles"] = _load_csv("roles.csv", ["id", "name"])
+    return _dataframes_cache["roles"]
+
+def get_user_roles_df() -> Optional[pd.DataFrame]:
+    if _dataframes_cache["user_roles"] is None:
+        _dataframes_cache["user_roles"] = _load_csv("user_roles.csv", ["user_id", "role_id"])
+    return _dataframes_cache["user_roles"]
+
+def get_employees_df() -> Optional[pd.DataFrame]:
+    if _dataframes_cache["employees"] is None:
+        _dataframes_cache["employees"] = _load_csv("employees.csv", ["id", "name", "department", "position"])
+    return _dataframes_cache["employees"]
+
+def get_hardware_df() -> Optional[pd.DataFrame]:
+    if _dataframes_cache["hardware"] is None:
+        _dataframes_cache["hardware"] = _load_csv("hardware.csv", ["id", "type", "serial_number", "employee_id"])
+    return _dataframes_cache["hardware"]
+
+def get_licenses_df() -> Optional[pd.DataFrame]:
+    if _dataframes_cache["licenses"] is None:
+        _dataframes_cache["licenses"] = _load_csv("licenses.csv", ["id", "software_name", "license_key", "employee_id"])
+    return _dataframes_cache["licenses"]
+
+def get_web_accesses_df() -> Optional[pd.DataFrame]:
+    if _dataframes_cache["web_accesses"] is None:
+        _dataframes_cache["web_accesses"] = _load_csv("web_accesses.csv", ["id", "service_name", "url", "employee_id"])
+    return _dataframes_cache["web_accesses"]
+
+# The following are no longer needed with CSVs as data source in this basic setup
+# - SQLAlchemy engine
+# - SessionLocal
+# - get_db() (the FastAPI dependency)
+# - init_db()
+# Models from db_models.py might still be useful for data structure reference or Pydantic conversion.
